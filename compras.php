@@ -1,9 +1,9 @@
 <?php
 // Configuración de la base de datos
-$host = 'localhost';
-$dbname = 'nombre_base_datos'; // Cambia este valor por el nombre real de tu base de datos
-$username = 'tu_usuario'; // Cambia este valor por tu usuario de base de datos
-$password = 'tu_contraseña'; // Cambia este valor por tu contraseña de base de datos
+$host = 'practicainventario.postgres.database.azure.com';
+$dbname = 'db_Inventario'; // Cambia este valor por el nombre real de tu base de datos
+$username = 'Adminpractica'; // Cambia este valor por tu usuario de base de datos
+$password = 'Alumnos1'; // Cambia este valor por tu contraseña de base de datos
 
 try {
     // Conectar a la base de datos
