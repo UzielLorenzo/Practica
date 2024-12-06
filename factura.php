@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/vendor/autoload.php'; // Cargar la librería mPDF
-
+ 
 session_start();
 
 if (!isset($_SESSION['nombre_usuario'])) {
