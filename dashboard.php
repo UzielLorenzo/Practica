@@ -47,6 +47,15 @@ $nombre_usuario = $_SESSION['nombre_usuario'];
         a:hover {
             background-color: #c76182;
         }
+        .video-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        iframe {
+            width: 560px;
+            height: 315px;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -55,6 +64,15 @@ $nombre_usuario = $_SESSION['nombre_usuario'];
         <p>Selecciona una opción para continuar:</p>
         <a href="compras.php">Ir al Sistema de Compras</a>
         <a href="logout.php">Cerrar Sesión</a>
+    </div>
+    
+    <div class="video-container">
+        <iframe 
+            src="https://www.youtube.com/embed/NI9LmJlNG84" 
+            title="Video de YouTube" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+        </iframe>
     </div>
 </body>
 </html>
