@@ -68,8 +68,8 @@ $fecha = date('Y-m-d H:i:s');
             </thead>
             <tbody>
                 <tr>
-                    <td><?= htmlspecialchars($producto) ?></td>
-                    <td><?= htmlspecialchars($cantidad) ?></td>
+                    <td><?= htmlspecialchars($nombre_producto) ?></td>
+                    <td><?= htmlspecialchars($precio_producto) ?></td>
                     <td>$<?= htmlspecialchars(number_format($subtotal, 2)) ?></td>
                     <td>$<?= htmlspecialchars(number_format($total, 2)) ?></td>
                 </tr>
