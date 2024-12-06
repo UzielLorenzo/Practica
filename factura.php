@@ -23,6 +23,18 @@ $fecha_formateada = $fecha->format('Y-m-d H:i:s');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Factura</title>
     <style>
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #ffe4e1;
@@ -58,6 +70,7 @@ $fecha_formateada = $fecha->format('Y-m-d H:i:s');
             font-size: 400%;
             font-weight: bold;
             margin-top: 20px;
+            animation: bounce 2s infinite;
         }
     </style>
 </head>
@@ -94,3 +107,4 @@ $fecha_formateada = $fecha->format('Y-m-d H:i:s');
     <div class="thank-you">¡Gracias por tu compra!</div>
 </body>
 </html>
+
