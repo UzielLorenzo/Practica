@@ -54,12 +54,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'cantidad' => $cantidad
                 ]);
 
-                // Calcular el total
+                // Calcular los totales
                 $subtotal = $producto['precio_producto'] * $cantidad;
                 $total = $subtotal * (1 + $iva);
 
-                // Redirigir a la factura
-                header("Location: factura.php?nombre_usuario={$nombre_usuario}&producto={$producto['nombre_producto']}&cantidad={$cantidad}&subtotal={$subtotal}&total={$total}");
+                // Preparar los datos para la factura
+                $productos_factura = [
+                    [
+                        'nombre' => $producto['nombre_producto'],
+                        'cantidad' => $cantidad,
+                        'precio_unitario' => $producto['precio_producto'],
+                        'subtotal' => $subtotal
+                    ]
+                ];
+
+                // Enviar los datos como JSON
+                header("Location: factura.php?productos=" . urlencode(json_encode($productos_factura)) . "&nombre_usuario=" . urlencode($nombre_usuario) . "&total=" . $total);
                 exit();
             }
         }
@@ -68,73 +78,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Compras</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #ffe4e1;
-            margin: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #d87093;
-        }
-        form {
-            margin-top: 20px;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-        }
-        button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            background-color: #d87093;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #c76182;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Sistema de Compras</h1>
-
-        <form method="POST">
-            <label for="codigo_producto">Selecciona un producto:</label>
-            <select id="codigo_producto" name="codigo_producto" required>
-                <?php foreach ($productos as $producto): ?>
-                    <option value="<?= $producto['codigo_producto'] ?>">
-                        <?= htmlspecialchars($producto['nombre_producto']) ?> - $<?= htmlspecialchars($producto['precio_producto']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-
-            <label for="cantidad">Cantidad:</label>
-            <input type="number" id="cantidad" name="cantidad" min="1" required>
-
-            <button type="submit">Realizar Compra</button>
-        </form>
-    </div>
-</body>
-</html>
