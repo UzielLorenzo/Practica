@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+//RESPALDO
 if (!isset($_SESSION['nombre_usuario'])) {
     header("Location: index.php");
     exit();
