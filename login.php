@@ -1,4 +1,6 @@
 <?php
+session_start(); // Mantener la sesión activa
+
 // Configuración de la base de datos
 $host = 'practicainventario.postgres.database.azure.com';
 $dbname = 'db_Inventario';
@@ -17,12 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $contrasena = $_POST['contrasena'];
 
     try {
+        // Validar usuario y contraseña
         $stmt = $pdo->prepare("SELECT contrasena FROM tb_usuario WHERE nombre_usuario = :nombre_usuario");
         $stmt->execute(['nombre_usuario' => $nombre_usuario]);
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($usuario && password_verify($contrasena, $usuario['contrasena'])) {
-            echo "Login exitoso. Redirigiendo al sistema... <a href='compras.php'>Ir al sistema de compras</a>";
+            $_SESSION['nombre_usuario'] = $nombre_usuario; // Guardar usuario en sesión
+            header("Location: dashboard.php"); // Redirigir al dashboard
+            exit();
         } else {
             echo "Usuario o contraseña no válidos. <a href='index.php'>Inténtalo de nuevo</a>.";
         }
