@@ -46,18 +46,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($usuario) {
-                // Calcular la hora ajustada
-                $fecha_actual = new DateTime('now', new DateTimeZone('UTC'));
-                $fecha_actual->modify('-6 hours');
-                $hora_ajustada = $fecha_actual->format('Y-m-d H:i:s');
-
-                // Insertar la compra con hora ajustada
-                $stmt = $pdo->prepare("INSERT INTO tb_compras (numero_idusuario, codigo_producto, cantidad, fecha_compra) VALUES (:numero_idusuario, :codigo_producto, :cantidad, :fecha_compra)");
+                // Insertar la compra
+                $stmt = $pdo->prepare("INSERT INTO tb_compras (numero_idusuario, codigo_producto, cantidad) VALUES (:numero_idusuario, :codigo_producto, :cantidad)");
                 $stmt->execute([
                     'numero_idusuario' => $usuario['numero_idusuario'],
                     'codigo_producto' => $codigo_producto,
-                    'cantidad' => $cantidad,
-                    'fecha_compra' => $hora_ajustada
+                    'cantidad' => $cantidad
                 ]);
 
                 // Calcular el total
@@ -143,4 +137,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 </body>
-</html>
+</html>      (en este codigo identifica cuando se guarda la hora de la compra)
