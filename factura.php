@@ -1,55 +1,57 @@
 <?php
-require 'vendor/autoload.php'; // Librería Dompdf para generar PDF
+require __DIR__ . '/vendor/autoload.php'; // Cargar la librería mPDF
 
-use Dompdf\Dompdf;
+session_start();
 
-$usuario = $_GET['usuario'];
-$producto = $_GET['producto'];
-$cantidad = $_GET['cantidad'];
-$subtotal = $_GET['subtotal'];
-$total = $_GET['total'];
+if (!isset($_SESSION['nombre_usuario'])) {
+    header("Location: index.php");
+    exit();
+}
 
-$dompdf = new Dompdf();
+$nombre_usuario = $_SESSION['nombre_usuario'];
+$fecha = date('Y-m-d H:i:s');
+$productos = json_decode($_POST['productos'], true);
+$total_sin_iva = $_POST['total_sin_iva'];
+$total_con_iva = $_POST['total_con_iva'];
+
+use Mpdf\Mpdf;
+
+$mpdf = new Mpdf();
+
 $html = "
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='UTF-8'>
-    <title>Factura</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-        }
-        h1 {
-            text-align: center;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-    </style>
-</head>
-<body>
-    <h1>Factura</h1>
-    <p><strong>Usuario ID:</strong> $usuario</p>
-    <p><strong>Producto:</strong> $producto</p>
-    <p><strong>Cantidad:</strong> $cantidad</p>
-    <p><strong>Subtotal:</strong> $$subtotal</p>
-    <p><strong>Total (IVA incluido):</strong> $$total</p>
-</body>
-</html>
+<h1>Factura de Compra</h1>
+<p><strong>Usuario:</strong> {$nombre_usuario}</p>
+<p><strong>Fecha:</strong> {$fecha}</p>
+<table border='1' style='width: 100%; border-collapse: collapse;'>
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
 ";
 
-$dompdf->loadHtml($html);
-$dompdf->setPaper('A4', 'portrait');
-$dompdf->render();
-$dompdf->stream("factura.pdf", ["Attachment" => false]);
+foreach ($productos as $producto) {
+    $html .= "
+        <tr>
+            <td>{$producto['nombre']}</td>
+            <td>{$producto['cantidad']}</td>
+            <td>\${$producto['precio_unitario']}</td>
+            <td>\${$producto['subtotal']}</td>
+        </tr>
+    ";
+}
+
+$html .= "
+    </tbody>
+</table>
+<p><strong>Total (sin IVA):</strong> \${$total_sin_iva}</p>
+<p><strong>Total (con IVA):</strong> \${$total_con_iva}</p>
+";
+
+$mpdf->WriteHTML($html);
+$mpdf->Output('factura.pdf', 'D'); // Descarga directa del PDF
+?>
