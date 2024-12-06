@@ -5,7 +5,7 @@ session_start();
 if (!isset($_SESSION['nombre_usuario'])) {
     header("Location: index.php");
     exit();
-}
+} 
 
 // Obtener el nombre del usuario
 $nombre_usuario = $_SESSION['nombre_usuario'];
