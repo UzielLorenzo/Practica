@@ -7,9 +7,7 @@ if (!isset($_SESSION['nombre_usuario'])) {
 }
 
 $nombre_usuario = $_GET['nombre_usuario'] ?? '';
-$producto = $_GET['producto'] ?? '';
-$cantidad = $_GET['cantidad'] ?? 0;
-$subtotal = $_GET['subtotal'] ?? 0;
+$productos_comprados = json_decode($_GET['productos'] ?? '[]', true);
 $total = $_GET['total'] ?? 0;
 
 // Ajustar la fecha al horario de México restando 6 horas
@@ -87,17 +85,23 @@ $fecha_formateada = $fecha->format('Y-m-d H:i:s'); // Formatear la fecha
                     <th>Producto</th>
                     <th>Cantidad</th>
                     <th>Subtotal</th>
-                    <th>Total</th>
                 </tr>
             </thead>
             <tbody>
+                <?php foreach ($productos_comprados as $producto): ?>
                 <tr>
-                    <td><?= htmlspecialchars($producto) ?></td>
-                    <td><?= htmlspecialchars($cantidad) ?></td>
-                    <td>$<?= htmlspecialchars(number_format($subtotal, 2)) ?></td>
+                    <td><?= htmlspecialchars($producto['nombre']) ?></td>
+                    <td><?= htmlspecialchars($producto['cantidad']) ?></td>
+                    <td>$<?= htmlspecialchars(number_format($producto['subtotal'], 2)) ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2"><strong>Total</strong></td>
                     <td>$<?= htmlspecialchars(number_format($total, 2)) ?></td>
                 </tr>
-            </tbody>
+            </tfoot>
         </table>
     </div>
     <div class="thank-you">¡Gracias por tu compra!</div>
