@@ -18,46 +18,54 @@ try {
     die("Error al conectar a la base de datos: " . $e->getMessage());
 }
 
-$factura = "";
+// Obtener los productos
+try {
+    $stmt = $pdo->query("SELECT codigo_producto, nombre_producto, precio_producto FROM tb_productos");
+    $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Error al obtener los productos: " . $e->getMessage());
+}
 
+// Procesar la compra
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $productos_seleccionados = $_POST['productos'];
-    $productos_cantidad = $_POST['cantidad'];
+    $codigo_producto = $_POST['codigo_producto'];
+    $cantidad = $_POST['cantidad'];
     $nombre_usuario = $_SESSION['nombre_usuario'];
-    $total_sin_iva = 0;
+    $iva = 0.16; // IVA 16%
 
-    $factura = "Factura de Compra\n";
-    $factura .= "Usuario: " . htmlspecialchars($nombre_usuario) . "\n";
-    $factura .= "Fecha: " . date('Y-m-d H:i:s') . "\n";
-    $factura .= "---------------------------------------------\n";
-    $factura .= "Producto\tCantidad\tPrecio Unitario\tSubtotal\n";
-
-    foreach ($productos_seleccionados as $index => $codigo_producto) {
-        $cantidad = $productos_cantidad[$index];
-
-        // Obtener información del producto
+    try {
+        // Validar el producto
         $stmt = $pdo->prepare("SELECT nombre_producto, precio_producto FROM tb_productos WHERE codigo_producto = :codigo_producto");
         $stmt->execute(['codigo_producto' => $codigo_producto]);
         $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($producto) {
-            $subtotal = $producto['precio_producto'] * $cantidad;
-            $total_sin_iva += $subtotal;
+            // Obtener el ID del usuario
+            $stmt = $pdo->prepare("SELECT numero_idusuario FROM tb_usuario WHERE nombre_usuario = :nombre_usuario");
+            $stmt->execute(['nombre_usuario' => $nombre_usuario]);
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            $factura .= $producto['nombre_producto'] . "\t" .
-                        $cantidad . "\t" .
-                        "$" . number_format($producto['precio_producto'], 2) . "\t" .
-                        "$" . number_format($subtotal, 2) . "\n";
+            if ($usuario) {
+                // Insertar la compra
+                $stmt = $pdo->prepare("INSERT INTO tb_compras (numero_idusuario, codigo_producto, cantidad) VALUES (:numero_idusuario, :codigo_producto, :cantidad)");
+                $stmt->execute([
+                    'numero_idusuario' => $usuario['numero_idusuario'],
+                    'codigo_producto' => $codigo_producto,
+                    'cantidad' => $cantidad
+                ]);
+
+                // Calcular el total
+                $subtotal = $producto['precio_producto'] * $cantidad;
+                $total = $subtotal * (1 + $iva);
+
+                // Redirigir a la factura
+                header("Location: factura.php?usuario={$usuario['numero_idusuario']}&producto={$producto['nombre_producto']}&cantidad={$cantidad}&subtotal={$subtotal}&total={$total}");
+                exit();
+            }
         }
+    } catch (PDOException $e) {
+        die("Error al procesar la compra: " . $e->getMessage());
     }
-
-    $iva = $total_sin_iva * 0.16;
-    $total_con_iva = $total_sin_iva + $iva;
-
-    $factura .= "---------------------------------------------\n";
-    $factura .= "Total sin IVA: $" . number_format($total_sin_iva, 2) . "\n";
-    $factura .= "IVA (16%): $" . number_format($iva, 2) . "\n";
-    $factura .= "Total con IVA: $" . number_format($total_con_iva, 2) . "\n";
 }
 ?>
 
@@ -70,20 +78,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #ffe4e1; /* Rosa claro */
+            background-color: #ffe4e1;
             margin: 20px;
         }
         .container {
-            max-width: 800px;
+            max-width: 600px;
             margin: auto;
             padding: 20px;
-            background-color: #ffffff; /* Blanco */
+            background-color: #ffffff;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         h1 {
             text-align: center;
-            color: #d87093; /* Rosa oscuro */
+            color: #d87093;
         }
         form {
             margin-top: 20px;
@@ -91,13 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         label {
             display: block;
             margin-top: 10px;
-        }
-        select, input[type="number"] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
         }
         button {
             display: block;
@@ -113,14 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         button:hover {
             background-color: #c76182;
         }
-        .factura {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #ffb6c1;
-            color: #800000;
-            white-space: pre-wrap;
-            border-radius: 4px;
-        }
     </style>
 </head>
 <body>
@@ -128,27 +121,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1>Sistema de Compras</h1>
 
         <form method="POST">
-            <label for="productos">Selecciona los productos:</label>
-            <div id="productos">
-                <?php
-                $stmt = $pdo->query("SELECT * FROM tb_productos");
-                while ($producto = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<div>';
-                    echo '<input type="checkbox" name="productos[]" value="' . $producto['codigo_producto'] . '">';
-                    echo htmlspecialchars($producto['nombre_producto']) . ' - $' . number_format($producto['precio_producto'], 2);
-                    echo '<br>Cantidad: <input type="number" name="cantidad[]" min="1" value="1">';
-                    echo '</div><br>';
-                }
-                ?>
-            </div>
+            <label for="codigo_producto">Selecciona un producto:</label>
+            <select id="codigo_producto" name="codigo_producto" required>
+                <?php foreach ($productos as $producto): ?>
+                    <option value="<?= $producto['codigo_producto'] ?>">
+                        <?= htmlspecialchars($producto['nombre_producto']) ?> - $<?= htmlspecialchars($producto['precio_producto']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <label for="cantidad">Cantidad:</label>
+            <input type="number" id="cantidad" name="cantidad" min="1" required>
+
             <button type="submit">Realizar Compra</button>
         </form>
-
-        <?php if ($factura): ?>
-            <div class="factura">
-                <?= htmlspecialchars($factura) ?>
-            </div>
-        <?php endif; ?>
     </div>
 </body>
 </html>
