@@ -68,7 +68,7 @@ $fecha = date('Y-m-d H:i:s');
             <tbody>
                 <?php foreach ($productos as $producto): ?>
                     <tr>
-                        <td><?= htmlspecialchars($producto['nombre_producto']) ?></td>
+                        <td><?= htmlspecialchars($nombre_producto['nombre_producto']) ?></td>
                         <td><?= htmlspecialchars($producto['cantidad']) ?></td>
                         <td>$<?= htmlspecialchars(number_format($producto['precio_unitario'], 2)) ?></td>
                         <td>$<?= htmlspecialchars(number_format($producto['subtotal'], 2)) ?></td>
