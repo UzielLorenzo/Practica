@@ -20,7 +20,7 @@ try {
 
 // Obtener los productos
 try {
-    $stmt = $pdo->query("SELECT codigo_producto, nombre_producto, precio_producto FROM tb_productos");
+    $stmt = $pdo->query("SELECT codigo_producto, nombre_producto, precio_producto, url_imagen FROM tb_productos");
     $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error al obtener los productos: " . $e->getMessage());
@@ -100,6 +100,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: block;
             margin-top: 10px;
         }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+        }
+        .product {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .product img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
         button {
             display: block;
             width: 100%;
@@ -125,7 +141,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <select id="codigo_producto" name="codigo_producto" required>
                 <?php foreach ($productos as $producto): ?>
                     <option value="<?= $producto['codigo_producto'] ?>">
-                        <?= htmlspecialchars($producto['nombre_producto']) ?> - $<?= htmlspecialchars($producto['precio_producto']) ?>
+                        <div class="product">
+                            <img src="<?= htmlspecialchars($producto['url_imagen']) ?>" alt="<?= htmlspecialchars($producto['nombre_producto']) ?>">
+                            <?= htmlspecialchars($producto['nombre_producto']) ?> - $<?= htmlspecialchars($producto['precio_producto']) ?>
+                        </div>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -137,4 +156,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 </body>
-</html>      
+</html>
