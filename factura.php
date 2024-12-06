@@ -6,9 +6,10 @@ if (!isset($_SESSION['nombre_usuario'])) {
     exit();
 }
 
-// Decodificar los datos enviados como JSON
-$productos = json_decode($_GET['productos'], true);
-$nombre_usuario = $_GET['nombre_usuario'] ?? 'Usuario desconocido';
+$nombre_usuario = $_GET['nombre_usuario'] ?? '';
+$producto = $_GET['producto'] ?? '';
+$cantidad = $_GET['cantidad'] ?? 0;
+$subtotal = $_GET['subtotal'] ?? 0;
 $total = $_GET['total'] ?? 0;
 $fecha = date('Y-m-d H:i:s');
 ?>
@@ -61,22 +62,19 @@ $fecha = date('Y-m-d H:i:s');
                 <tr>
                     <th>Producto</th>
                     <th>Cantidad</th>
-                    <th>Precio Unitario</th>
                     <th>Subtotal</th>
+                    <th>Total</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($productos as $producto): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($nombre_producto['nombre_producto']) ?></td>
-                        <td><?= htmlspecialchars($producto['cantidad']) ?></td>
-                        <td>$<?= htmlspecialchars(number_format($producto['precio_unitario'], 2)) ?></td>
-                        <td>$<?= htmlspecialchars(number_format($producto['subtotal'], 2)) ?></td>
-                    </tr>
-                <?php endforeach; ?>
+                <tr>
+                    <td><?= htmlspecialchars($producto) ?></td>
+                    <td><?= htmlspecialchars($cantidad) ?></td>
+                    <td>$<?= htmlspecialchars(number_format($subtotal, 2)) ?></td>
+                    <td>$<?= htmlspecialchars(number_format($total, 2)) ?></td>
+                </tr>
             </tbody>
         </table>
-        <p><strong>Total con IVA:</strong> $<?= htmlspecialchars(number_format($total, 2)) ?></p>
     </div>
 </body>
 </html>
