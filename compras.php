@@ -1,6 +1,6 @@
 <?php
 session_start();
-//RESPALDO
+
 if (!isset($_SESSION['nombre_usuario'])) {
     header("Location: index.php");
     exit();
@@ -41,13 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($usuario) {
             $numero_idusuario = $usuario['numero_idusuario'];
 
-            // Insertar encabezado de la factura en `tb_facturas`
             $stmt = $pdo->prepare("INSERT INTO tb_facturas (numero_idusuario, total_factura) VALUES (:numero_idusuario, 0) RETURNING id_factura");
             $stmt->execute(['numero_idusuario' => $numero_idusuario]);
             $id_factura = $stmt->fetchColumn();
 
-            foreach ($productos_seleccionados as $index => $codigo_producto) {
-                $cantidad = $cantidades[$index];
+            foreach ($productos_seleccionados as $codigo_producto) {
+                $cantidad = $cantidades[$codigo_producto];
                 $stmt = $pdo->prepare("SELECT nombre_producto, precio_producto FROM tb_productos WHERE codigo_producto = :codigo_producto");
                 $stmt->execute(['codigo_producto' => $codigo_producto]);
                 $producto = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -61,7 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ];
                     $total += $subtotal * (1 + $iva);
 
-                    // Insertar detalle en `tb_factura_detalles`
                     $stmt = $pdo->prepare("INSERT INTO tb_factura_detalles (id_factura, codigo_producto, cantidad, subtotal) VALUES (:id_factura, :codigo_producto, :cantidad, :subtotal)");
                     $stmt->execute([
                         'id_factura' => $id_factura,
@@ -70,7 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'subtotal' => $subtotal
                     ]);
 
-                    // Registrar en `tb_compras`
                     $stmt = $pdo->prepare("INSERT INTO tb_compras (numero_idusuario, codigo_producto, cantidad) VALUES (:numero_idusuario, :codigo_producto, :cantidad)");
                     $stmt->execute([
                         'numero_idusuario' => $numero_idusuario,
@@ -80,14 +77,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            // Actualizar el total en `tb_facturas`
             $stmt = $pdo->prepare("UPDATE tb_facturas SET total_factura = :total_factura WHERE id_factura = :id_factura");
             $stmt->execute([
                 'total_factura' => $total,
                 'id_factura' => $id_factura
             ]);
 
-            // Redirigir a la factura
             $productos_json = json_encode($productos_comprados);
             header("Location: factura.php?nombre_usuario={$nombre_usuario}&productos={$productos_json}&total={$total}");
             exit();
@@ -158,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="checkbox" name="productos[]" value="<?= $producto['codigo_producto'] ?>">
                         <?= htmlspecialchars($producto['nombre_producto']) ?> - $<?= htmlspecialchars($producto['precio_producto']) ?>
                     </label>
-                    <input type="number" name="cantidades[]" min="1" value="1">
+                    <input type="number" name="cantidades[<?= $producto['codigo_producto'] ?>]" min="1" value="1">
                 </div>
             <?php endforeach; ?>
             <button type="submit">Realizar Compra</button>
