@@ -76,6 +76,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Compras</title>
     <style>
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #ffe4e1;
@@ -88,10 +109,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: #ffffff;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in-out;
         }
         h1 {
             text-align: center;
             color: #d87093;
+            animation: bounce 2s infinite;
         }
         form {
             margin-top: 20px;
@@ -100,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: block;
             margin-top: 10px;
         }
-        select {
+        select, input[type="number"] {
             width: 100%;
             padding: 10px;
             margin-top: 5px;
@@ -126,9 +149,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            animation: fadeIn 1.5s ease-in-out;
         }
         button:hover {
             background-color: #c76182;
+            transform: scale(1.05);
+            transition: all 0.3s ease;
         }
     </style>
 </head>
@@ -141,10 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <select id="codigo_producto" name="codigo_producto" required>
                 <?php foreach ($productos as $producto): ?>
                     <option value="<?= $producto['codigo_producto'] ?>">
-                        <div class="product">
-                            <img src="<?= htmlspecialchars($producto['url_imagen']) ?>" alt="<?= htmlspecialchars($producto['nombre_producto']) ?>">
-                            <?= htmlspecialchars($producto['nombre_producto']) ?> - $<?= htmlspecialchars($producto['precio_producto']) ?>
-                        </div>
+                        <?= htmlspecialchars($producto['nombre_producto']) ?> - $<?= htmlspecialchars($producto['precio_producto']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
