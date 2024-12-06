@@ -6,38 +6,11 @@ if (!isset($_SESSION['nombre_usuario'])) {
     exit();
 }
 
-// Configuración de la base de datos
-$host = 'practicainventario.postgres.database.azure.com';
-$dbname = 'db_Inventario';
-$username = 'Adminpractica';
-$password = 'Alumnos1';
-
-try {
-    $pdo = new PDO("pgsql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Error al conectar a la base de datos: " . $e->getMessage());
-}
-
-// Obtener datos del usuario y la compra
+// Decodificar los datos enviados como JSON
+$productos = json_decode($_GET['productos'], true);
 $nombre_usuario = $_GET['nombre_usuario'] ?? 'Usuario desconocido';
-$codigo_producto = $_GET['codigo_producto'] ?? null;
-$cantidad = $_GET['cantidad'] ?? 0;
 $total = $_GET['total'] ?? 0;
 $fecha = date('Y-m-d H:i:s');
-
-// Obtener el nombre del producto desde la base de datos
-try {
-    $stmt = $pdo->prepare("SELECT nombre_producto, precio_producto FROM tb_productos WHERE codigo_producto = :codigo_producto");
-    $stmt->execute(['codigo_producto' => $codigo_producto]);
-    $producto = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$producto) {
-        die("Error: Producto no encontrado en la base de datos.");
-    }
-} catch (PDOException $e) {
-    die("Error al obtener los datos del producto: " . $e->getMessage());
-}
 ?>
 
 <!DOCTYPE html>
@@ -90,19 +63,20 @@ try {
                     <th>Cantidad</th>
                     <th>Precio Unitario</th>
                     <th>Subtotal</th>
-                    <th>Total con IVA</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td><?= htmlspecialchars($producto['nombre_producto']) ?></td>
-                    <td><?= htmlspecialchars($cantidad) ?></td>
-                    <td>$<?= htmlspecialchars(number_format($producto['precio_producto'], 2)) ?></td>
-                    <td>$<?= htmlspecialchars(number_format($producto['precio_producto'] * $cantidad, 2)) ?></td>
-                    <td>$<?= htmlspecialchars(number_format($total, 2)) ?></td>
-                </tr>
+                <?php foreach ($productos as $producto): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($nombre_producto['nombre_producto']) ?></td>
+                        <td><?= htmlspecialchars($producto['cantidad']) ?></td>
+                        <td>$<?= htmlspecialchars(number_format($producto['precio_unitario'], 2)) ?></td>
+                        <td>$<?= htmlspecialchars(number_format($producto['subtotal'], 2)) ?></td>
+                    </tr>
+                <?php endforeach; ?>
             </tbody>
         </table>
+        <p><strong>Total con IVA:</strong> $<?= htmlspecialchars(number_format($total, 2)) ?></p>
     </div>
 </body>
 </html>
