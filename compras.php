@@ -123,21 +123,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: block;
             margin-top: 10px;
         }
-        select, input[type="number"] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-        }
         .product {
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-bottom: 10px;
         }
         .product img {
             width: 50px;
             height: 50px;
             object-fit: cover;
             border-radius: 4px;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
         }
         button {
             display: block;
@@ -164,13 +165,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form method="POST">
             <label for="codigo_producto">Selecciona un producto:</label>
-            <select id="codigo_producto" name="codigo_producto" required>
+            <div id="productos-lista">
                 <?php foreach ($productos as $producto): ?>
-                    <option value="<?= $producto['codigo_producto'] ?>">
-                        <?= htmlspecialchars($producto['nombre_producto']) ?> - $<?= htmlspecialchars($producto['precio_producto']) ?>
-                    </option>
+                    <div class="product">
+                        <img src="<?= htmlspecialchars($producto['url_imagen']) ?>" alt="<?= htmlspecialchars($producto['nombre_producto']) ?>">
+                        <label>
+                            <input type="radio" name="codigo_producto" value="<?= $producto['codigo_producto'] ?>" required>
+                            <?= htmlspecialchars($producto['nombre_producto']) ?> - $<?= htmlspecialchars($producto['precio_producto']) ?>
+                        </label>
+                    </div>
                 <?php endforeach; ?>
-            </select>
+            </div>
 
             <label for="cantidad">Cantidad:</label>
             <input type="number" id="cantidad" name="cantidad" min="1" required>
