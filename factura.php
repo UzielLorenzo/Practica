@@ -11,7 +11,11 @@ $producto = $_GET['producto'] ?? '';
 $cantidad = $_GET['cantidad'] ?? 0;
 $subtotal = $_GET['subtotal'] ?? 0;
 $total = $_GET['total'] ?? 0;
-$fecha = date('Y-m-d H:i:s');
+
+// Ajustar la fecha al horario de México restando 6 horas
+$fecha = new DateTime('now', new DateTimeZone('UTC')); // Hora actual en UTC
+$fecha->modify('-6 hours'); // Restar 6 horas
+$fecha_formateada = $fecha->format('Y-m-d H:i:s'); // Formatear la fecha
 ?>
 
 <!DOCTYPE html>
@@ -56,7 +60,7 @@ $fecha = date('Y-m-d H:i:s');
     <div class="container">
         <h1>Factura</h1>
         <p><strong>Usuario:</strong> <?= htmlspecialchars($nombre_usuario) ?></p>
-        <p><strong>Fecha:</strong> <?= htmlspecialchars($fecha) ?></p>
+        <p><strong>Fecha:</strong> <?= htmlspecialchars($fecha_formateada) ?></p>
         <table>
             <thead>
                 <tr>
