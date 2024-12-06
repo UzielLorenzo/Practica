@@ -3,55 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Compras</title>
+    <title>Sistema de Login y Registro</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #ffffff;
             margin: 20px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        form {
+            margin-bottom: 20px;
         }
-        table, th, td {
-            border: 1px solid black;
+        label {
+            display: block;
+            margin-top: 10px;
         }
-        th, td {
-            padding: 10px;
-            text-align: left;
+        button {
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Sistema de Compras</h1>
-    <form action="compras.php" method="POST">
+    <h1>Sistema de Login y Registro</h1>
+
+    <h2>Login</h2>
+    <form action="login.php" method="POST">
         <label for="nombre_usuario">Nombre de Usuario:</label>
-        <input type="text" id="nombre_usuario" name="nombre_usuario" required><br><br>
+        <input type="text" id="nombre_usuario" name="nombre_usuario" required>
 
-        <label for="codigo_producto">Código del Producto:</label>
-        <input type="number" id="codigo_producto" name="codigo_producto" required><br><br>
+        <label for="contrasena">Contraseña:</label>
+        <input type="password" id="contrasena" name="contrasena" required>
 
-        <label for="cantidad">Cantidad:</label>
-        <input type="number" id="cantidad" name="cantidad" min="1" required><br><br>
-
-        <button type="submit">Realizar Compra</button>
+        <button type="submit">Iniciar Sesión</button>
     </form>
 
-    <h2>Compras Realizadas</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Nombre de Usuario</th>
-                <th>Fecha de Compra</th>
-                <th>Producto</th>
-                <th>Precio Total</th>
-            </tr>
-        </thead>
-        <tbody id="compra-detalle">
-            <!-- Aquí se insertarán las compras realizadas -->
-        </tbody>
-    </table>
+    <h2>Registro</h2>
+    <form action="registro.php" method="POST">
+        <label for="nombre_usuario">Nombre de Usuario:</label>
+        <input type="text" id="nombre_usuario" name="nombre_usuario" required>
+
+        <label for="contrasena">Contraseña:</label>
+        <input type="password" id="contrasena" name="contrasena" required>
+
+        <button type="submit">Registrar</button>
+    </form>
 </body>
 </html>
