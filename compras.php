@@ -39,6 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($usuario) {
+            $numero_idusuario = $usuario['numero_idusuario'];
+
+            // Insertar encabezado de la factura en `tb_facturas`
+            $stmt = $pdo->prepare("INSERT INTO tb_facturas (numero_idusuario, total_factura) VALUES (:numero_idusuario, 0) RETURNING id_factura");
+            $stmt->execute(['numero_idusuario' => $numero_idusuario]);
+            $id_factura = $stmt->fetchColumn();
+
             foreach ($productos_seleccionados as $index => $codigo_producto) {
                 $cantidad = $cantidades[$index];
                 $stmt = $pdo->prepare("SELECT nombre_producto, precio_producto FROM tb_productos WHERE codigo_producto = :codigo_producto");
@@ -54,14 +61,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ];
                     $total += $subtotal * (1 + $iva);
 
+                    // Insertar detalle en `tb_factura_detalles`
+                    $stmt = $pdo->prepare("INSERT INTO tb_factura_detalles (id_factura, codigo_producto, cantidad, subtotal) VALUES (:id_factura, :codigo_producto, :cantidad, :subtotal)");
+                    $stmt->execute([
+                        'id_factura' => $id_factura,
+                        'codigo_producto' => $codigo_producto,
+                        'cantidad' => $cantidad,
+                        'subtotal' => $subtotal
+                    ]);
+
+                    // Registrar en `tb_compras`
                     $stmt = $pdo->prepare("INSERT INTO tb_compras (numero_idusuario, codigo_producto, cantidad) VALUES (:numero_idusuario, :codigo_producto, :cantidad)");
                     $stmt->execute([
-                        'numero_idusuario' => $usuario['numero_idusuario'],
+                        'numero_idusuario' => $numero_idusuario,
                         'codigo_producto' => $codigo_producto,
                         'cantidad' => $cantidad
                     ]);
                 }
             }
+
+            // Actualizar el total en `tb_facturas`
+            $stmt = $pdo->prepare("UPDATE tb_facturas SET total_factura = :total_factura WHERE id_factura = :id_factura");
+            $stmt->execute([
+                'total_factura' => $total,
+                'id_factura' => $id_factura
+            ]);
+
+            // Redirigir a la factura
             $productos_json = json_encode($productos_comprados);
             header("Location: factura.php?nombre_usuario={$nombre_usuario}&productos={$productos_json}&total={$total}");
             exit();
