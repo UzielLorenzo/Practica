@@ -10,10 +10,10 @@ $nombre_usuario = $_GET['nombre_usuario'] ?? '';
 $productos_comprados = json_decode($_GET['productos'] ?? '[]', true);
 $total = $_GET['total'] ?? 0;
 
-// Ajustar la fecha al horario de México restando 6 horas
-$fecha = new DateTime('now', new DateTimeZone('UTC')); // Hora actual en UTC
-$fecha->modify('-6 hours'); // Restar 6 horas
-$fecha_formateada = $fecha->format('Y-m-d H:i:s'); // Formatear la fecha
+// Ajustar la fecha al horario de México
+$fecha = new DateTime('now', new DateTimeZone('UTC'));
+$fecha->modify('-6 hours');
+$fecha_formateada = $fecha->format('Y-m-d H:i:s');
 ?>
 
 <!DOCTYPE html>
@@ -23,18 +23,6 @@ $fecha_formateada = $fecha->format('Y-m-d H:i:s'); // Formatear la fecha
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Factura</title>
     <style>
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-10px);
-            }
-            60% {
-                transform: translateY(-5px);
-            }
-        }
-
         body {
             font-family: Arial, sans-serif;
             background-color: #ffe4e1;
@@ -70,7 +58,6 @@ $fecha_formateada = $fecha->format('Y-m-d H:i:s'); // Formatear la fecha
             font-size: 400%;
             font-weight: bold;
             margin-top: 20px;
-            animation: bounce 2s infinite;
         }
     </style>
 </head>
