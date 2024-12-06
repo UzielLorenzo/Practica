@@ -1,36 +1,40 @@
 <?php
-// Iniciar sesión para mantener el estado del usuario
 session_start();
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['nombre_usuario'])) {
-    // Si no hay sesión activa, redirigir al login
     header("Location: index.php");
     exit();
 }
 
-// Configuración de la base de datos
 $host = 'practicainventario.postgres.database.azure.com';
 $dbname = 'db_Inventario';
 $username = 'Adminpractica';
 $password = 'Alumnos1';
 
 try {
-    // Conexión a la base de datos
     $pdo = new PDO("pgsql:host=$host;dbname=$dbname", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Error al conectar a la base de datos: " . $e->getMessage());
 }
 
-// Si el formulario de compra es enviado
+// Obtener los productos
+try {
+    $stmt = $pdo->query("SELECT codigo_producto, nombre_producto, precio_producto FROM tb_productos");
+    $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Error al obtener los productos: " . $e->getMessage());
+}
+
+// Procesar la compra
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $codigo_producto = $_POST['codigo_producto'];
     $cantidad = $_POST['cantidad'];
-    $nombre_usuario = $_SESSION['nombre_usuario']; // Usuario autenticado
+    $nombre_usuario = $_SESSION['nombre_usuario'];
+    $iva = 0.16; // IVA 16%
 
     try {
-        // Validar que el producto existe
+        // Validar el producto
         $stmt = $pdo->prepare("SELECT nombre_producto, precio_producto FROM tb_productos WHERE codigo_producto = :codigo_producto");
         $stmt->execute(['codigo_producto' => $codigo_producto]);
         $producto = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -50,16 +54,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'cantidad' => $cantidad
                 ]);
 
-                $total_precio = $producto['precio_producto'] * $cantidad;
-                $mensaje = "Compra realizada con éxito. Producto: " . $producto['nombre_producto'] . ", Cantidad: $cantidad, Precio Total: $total_precio.";
-            } else {
-                $mensaje = "Usuario no encontrado.";
+                // Calcular el total
+                $subtotal = $producto['precio_producto'] * $cantidad;
+                $total = $subtotal * (1 + $iva);
+
+                // Redirigir a la factura
+                header("Location: factura.php?usuario={$usuario['numero_idusuario']}&producto={$producto['nombre_producto']}&cantidad={$cantidad}&subtotal={$subtotal}&total={$total}");
+                exit();
             }
-        } else {
-            $mensaje = "Producto no encontrado.";
         }
     } catch (PDOException $e) {
-        $mensaje = "Error al procesar la compra: " . $e->getMessage();
+        die("Error al procesar la compra: " . $e->getMessage());
     }
 }
 ?>
@@ -73,20 +78,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #ffe4e1; /* Rosa claro */
+            background-color: #ffe4e1;
             margin: 20px;
         }
         .container {
             max-width: 600px;
             margin: auto;
             padding: 20px;
-            background-color: #ffffff; /* Blanco */
+            background-color: #ffffff;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        h1, h2 {
+        h1 {
             text-align: center;
-            color: #d87093; /* Rosa oscuro */
+            color: #d87093;
         }
         form {
             margin-top: 20px;
@@ -109,13 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         button:hover {
             background-color: #c76182;
         }
-        .mensaje {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #ffb6c1;
-            color: #800000;
-            border-radius: 4px;
-        }
     </style>
 </head>
 <body>
@@ -123,18 +121,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1>Sistema de Compras</h1>
 
         <form method="POST">
-            <label for="codigo_producto">Código del Producto:</label>
-            <input type="number" id="codigo_producto" name="codigo_producto" required>
+            <label for="codigo_producto">Selecciona un producto:</label>
+            <select id="codigo_producto" name="codigo_producto" required>
+                <?php foreach ($productos as $producto): ?>
+                    <option value="<?= $producto['codigo_producto'] ?>">
+                        <?= htmlspecialchars($producto['nombre_producto']) ?> - $<?= htmlspecialchars($producto['precio_producto']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
 
             <label for="cantidad">Cantidad:</label>
             <input type="number" id="cantidad" name="cantidad" min="1" required>
 
             <button type="submit">Realizar Compra</button>
         </form>
-
-        <?php if (isset($mensaje)): ?>
-            <div class="mensaje"><?= htmlspecialchars($mensaje) ?></div>
-        <?php endif; ?>
     </div>
 </body>
 </html>
