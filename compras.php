@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $total = $subtotal * (1 + $iva);
 
                 // Redirigir a la factura
-                header("Location: factura.php?usuario={$usuario['numero_idusuario']}&producto={$producto['nombre_producto']}&cantidad={$cantidad}&subtotal={$subtotal}&total={$total}");
+                header("Location: factura.php?nombre_usuario={$nombre_usuario}&producto={$producto['nombre_producto']}&cantidad={$cantidad}&subtotal={$subtotal}&total={$total}");
                 exit();
             }
         }
