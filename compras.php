@@ -1,22 +1,33 @@
 <?php
+// Iniciar sesión para mantener el estado del usuario
+session_start();
+
+// Verificar si el usuario ha iniciado sesión
+if (!isset($_SESSION['nombre_usuario'])) {
+    // Si no hay sesión activa, redirigir al login
+    header("Location: index.php");
+    exit();
+}
+
 // Configuración de la base de datos
 $host = 'practicainventario.postgres.database.azure.com';
-$dbname = 'db_Inventario'; // Cambia este valor por el nombre real de tu base de datos
-$username = 'Adminpractica'; // Cambia este valor por tu usuario de base de datos
-$password = 'Alumnos1'; // Cambia este valor por tu contraseña de base de datos
+$dbname = 'db_Inventario';
+$username = 'Adminpractica';
+$password = 'Alumnos1';
 
 try {
-    // Conectar a la base de datos
+    // Conexión a la base de datos
     $pdo = new PDO("pgsql:host=$host;dbname=$dbname", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Error al conectar a la base de datos: " . $e->getMessage());
 }
 
+// Si el formulario de compra es enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre_usuario = $_POST['nombre_usuario'];
     $codigo_producto = $_POST['codigo_producto'];
     $cantidad = $_POST['cantidad'];
+    $nombre_usuario = $_SESSION['nombre_usuario']; // Usuario autenticado
 
     try {
         // Validar que el producto existe
@@ -39,22 +50,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'cantidad' => $cantidad
                 ]);
 
-                // Mostrar detalles de la compra
                 $total_precio = $producto['precio_producto'] * $cantidad;
-                echo json_encode([
-                    'nombre_usuario' => $nombre_usuario,
-                    'fecha_compra' => date('Y-m-d H:i:s'),
-                    'producto' => $producto['nombre_producto'],
-                    'precio_total' => $total_precio
-                ]);
+                $mensaje = "Compra realizada con éxito. Producto: " . $producto['nombre_producto'] . ", Cantidad: $cantidad, Precio Total: $total_precio.";
             } else {
-                echo json_encode(['error' => 'Usuario no encontrado.']);
+                $mensaje = "Usuario no encontrado.";
             }
         } else {
-            echo json_encode(['error' => 'Producto no encontrado.']);
+            $mensaje = "Producto no encontrado.";
         }
     } catch (PDOException $e) {
-        echo json_encode(['error' => 'Error al procesar la compra: ' . $e->getMessage()]);
+        $mensaje = "Error al procesar la compra: " . $e->getMessage();
     }
 }
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Compras</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffe4e1; /* Rosa claro */
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: #ffffff; /* Blanco */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #d87093; /* Rosa oscuro */
+        }
+        form {
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #d87093;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #c76182;
+        }
+        .mensaje {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #ffb6c1;
+            color: #800000;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Compras</h1>
+
+        <form method="POST">
+            <label for="codigo_producto">Código del Producto:</label>
+            <input type="number" id="codigo_producto" name="codigo_producto" required>
+
+            <label for="cantidad">Cantidad:</label>
+            <input type="number" id="cantidad" name="cantidad" min="1" required>
+
+            <button type="submit">Realizar Compra</button>
+        </form>
+
+        <?php if (isset($mensaje)): ?>
+            <div class="mensaje"><?= htmlspecialchars($mensaje) ?></div>
+        <?php endif; ?>
+    </div>
+</body>
+</html>
