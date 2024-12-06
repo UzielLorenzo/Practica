@@ -69,7 +69,7 @@ $fecha_formateada = $fecha->format('Y-m-d H:i:s'); // Formatear la fecha
         .thank-you {
             text-align: center;
             color: #d87093;
-            font-size: 20px;
+            font-size: 400%;
             font-weight: bold;
             margin-top: 20px;
             animation: bounce 2s infinite;
@@ -99,7 +99,7 @@ $fecha_formateada = $fecha->format('Y-m-d H:i:s'); // Formatear la fecha
                 </tr>
             </tbody>
         </table>
-        <div class="thank-you">¡Gracias por tu compra!</div>
     </div>
+    <div class="thank-you">¡Gracias por tu compra!</div>
 </body>
 </html>
