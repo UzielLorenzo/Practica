@@ -8,7 +8,7 @@ if (!isset($_SESSION['nombre_usuario'])) {
 
 $nombre_usuario = $_GET['nombre_usuario'] ?? '';
 $producto = $_GET['producto'] ?? '';
-$cantidad = $_GET['cantidad'] ?? 0;
+cantidad = $_GET['cantidad'] ?? 0;
 $subtotal = $_GET['subtotal'] ?? 0;
 $total = $_GET['total'] ?? 0;
 
@@ -54,6 +54,34 @@ $fecha_formateada = $fecha->format('Y-m-d H:i:s'); // Formatear la fecha
             padding: 10px;
             text-align: left;
         }
+        .thanks {
+            color: #d87093;
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #d87093;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .button:hover {
+            background-color: #c76182;
+        }
     </style>
 </head>
 <body>
@@ -79,6 +107,10 @@ $fecha_formateada = $fecha->format('Y-m-d H:i:s'); // Formatear la fecha
                 </tr>
             </tbody>
         </table>
+        <div class="thanks">Muchas Gracias por su compra!</div>
+        <div class="button-container">
+            <a href="compras.php" class="button">Volver a Comprar</a>
+        </div>
     </div>
 </body>
 </html>
