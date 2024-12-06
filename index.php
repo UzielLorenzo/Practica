@@ -3,8 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Login y Registro</title>
+    <title>Bienvenido</title>
     <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #ffe4e1; /* Rosa claro */
@@ -17,8 +38,16 @@
             background-color: #ffffff; /* Blanco */
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in-out;
         }
-        h1, h2 {
+        .welcome-text {
+            animation: bounce 2s infinite;
+            text-align: center;
+            color: #d87093; /* Rosa oscuro */
+            font-size: 28px;
+            font-weight: bold;
+        }
+        h2 {
             text-align: center;
             color: #d87093; /* Rosa oscuro */
         }
@@ -46,11 +75,37 @@
             margin-top: 10px;
             display: block;
         }
+        .description {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            max-width: 250px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .description h3 {
+            color: #d87093;
+        }
+        .perfume-image {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
+    <div class="description">
+        <h3>Bienvenido a nuestra Perfumería</h3>
+        <p>Descubre las mejores fragancias diseñadas para ti. Sumérgete en un mundo de aromas únicos y elegantes.</p>
+    </div>
+
     <div class="container">
-        <h1>Sistema de Login y Registro</h1>
+        <div class="welcome-text">Bienvenido</div>
         <div id="panel">
             <button onclick="mostrarFormulario('login')">Iniciar Sesión</button>
             <button onclick="mostrarFormulario('registro')">Registrarse</button>
@@ -78,6 +133,8 @@
             <button type="submit">Registrarse</button>
         </form>
     </div>
+
+    <img class="perfume-image" src="https://imagenesdb.blob.core.windows.net/imagenes/perfumeportada.jpg" alt="Perfume">
 
     <script>
         function mostrarFormulario(formulario) {
