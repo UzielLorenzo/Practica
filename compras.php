@@ -137,4 +137,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 </body>
-</html>      (en este codigo identifica cuando se guarda la hora de la compra)
+</html>      
