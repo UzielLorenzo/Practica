@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -11,6 +10,7 @@ $nombre_usuario = $_GET['nombre_usuario'] ?? '';
 $productos_comprados = json_decode($_GET['productos'] ?? '[]', true);
 $total = $_GET['total'] ?? 0;
 
+// Ajustar la fecha al horario de México
 $fecha = new DateTime('now', new DateTimeZone('UTC'));
 $fecha->modify('-6 hours');
 $fecha_formateada = $fecha->format('Y-m-d H:i:s');
@@ -104,7 +104,6 @@ $fecha_formateada = $fecha->format('Y-m-d H:i:s');
             </tfoot>
         </table>
     </div>
-    <div class="thank-you">¡Gracias por su compra!</div>
+    <div class="thank-you">¡Gracias por tu compra!</div>
 </body>
 </html>
-
