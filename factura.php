@@ -1,4 +1,4 @@
-<?php 
+<?php
 session_start();
 
 if (!isset($_SESSION['nombre_usuario'])) {
@@ -9,17 +9,11 @@ if (!isset($_SESSION['nombre_usuario'])) {
 $nombre_usuario = $_GET['nombre_usuario'] ?? '';
 $productos_comprados = json_decode($_GET['productos'] ?? '[]', true);
 $total = $_GET['total'] ?? 0;
-$pdf_file = $_GET['pdf'] ?? '';
 
 // Ajustar la fecha al horario de México
 $fecha = new DateTime('now', new DateTimeZone('UTC'));
 $fecha->modify('-6 hours');
 $fecha_formateada = $fecha->format('Y-m-d H:i:s');
-
-// Validar si los productos fueron enviados correctamente
-if (empty($productos_comprados) || !is_array($productos_comprados)) {
-    die("Error: No se encontraron productos para mostrar en la factura.");
-}
 ?>
 
 <!DOCTYPE html>
@@ -78,15 +72,6 @@ if (empty($productos_comprados) || !is_array($productos_comprados)) {
             margin-top: 20px;
             animation: bounce 2s infinite;
         }
-        .pdf-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .pdf-link a {
-            text-decoration: none;
-            color: #d87093;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -94,8 +79,6 @@ if (empty($productos_comprados) || !is_array($productos_comprados)) {
         <h1>Factura</h1>
         <p><strong>Usuario:</strong> <?= htmlspecialchars($nombre_usuario) ?></p>
         <p><strong>Fecha:</strong> <?= htmlspecialchars($fecha_formateada) ?></p>
-
-        <?php if (!empty($productos_comprados) && is_array($productos_comprados)): ?>
         <table>
             <thead>
                 <tr>
@@ -120,15 +103,6 @@ if (empty($productos_comprados) || !is_array($productos_comprados)) {
                 </tr>
             </tfoot>
         </table>
-        <?php else: ?>
-            <p>No se encontraron productos en la factura.</p>
-        <?php endif; ?>
-
-        <div class="pdf-link">
-            <?php if (!empty($pdf_file)): ?>
-                <p><a href="<?= htmlspecialchars($pdf_file) ?>" download>Descargar Factura en PDF</a></p>
-            <?php endif; ?>
-        </div>
     </div>
     <div class="thank-you">¡Gracias por tu compra!</div>
 </body>
