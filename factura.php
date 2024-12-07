@@ -1,4 +1,4 @@
-<?php
+<?php 
 session_start();
 
 if (!isset($_SESSION['nombre_usuario'])) {
@@ -6,115 +6,19 @@ if (!isset($_SESSION['nombre_usuario'])) {
     exit();
 }
 
-$host = 'practicainventario.postgres.database.azure.com';
-$dbname = 'db_Inventario';
-$username = 'Adminpractica';
-$password = 'Alumnos1';
+$nombre_usuario = $_GET['nombre_usuario'] ?? '';
+$productos_comprados = json_decode($_GET['productos'] ?? '[]', true);
+$total = $_GET['total'] ?? 0;
+$pdf_file = $_GET['pdf'] ?? '';
 
-require_once __DIR__ . '/vendor/autoload.php'; // Cargar librería mPDF
+// Ajustar la fecha al horario de México
+$fecha = new DateTime('now', new DateTimeZone('UTC'));
+$fecha->modify('-6 hours');
+$fecha_formateada = $fecha->format('Y-m-d H:i:s');
 
-try {
-    $pdo = new PDO("pgsql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Error al conectar a la base de datos: " . $e->getMessage());
-}
-
-try {
-    $stmt = $pdo->query("SELECT codigo_producto, nombre_producto, precio_producto, url_imagen FROM tb_productos");
-    $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Error al obtener los productos: " . $e->getMessage());
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $productos_seleccionados = $_POST['productos'];
-    $cantidades = $_POST['cantidades'];
-    $nombre_usuario = $_SESSION['nombre_usuario'];
-    $iva = 0.16;
-
-    try {
-        $total = 0;
-        $productos_comprados = [];
-        $stmt = $pdo->prepare("SELECT numero_idusuario FROM tb_usuario WHERE nombre_usuario = :nombre_usuario");
-        $stmt->execute(['nombre_usuario' => $nombre_usuario]);
-        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($usuario) {
-            $numero_idusuario = $usuario['numero_idusuario'];
-
-            $stmt = $pdo->prepare("INSERT INTO tb_facturas (numero_idusuario, total_factura) VALUES (:numero_idusuario, 0) RETURNING id_factura");
-            $stmt->execute(['numero_idusuario' => $numero_idusuario]);
-            $id_factura = $stmt->fetchColumn();
-
-            foreach ($productos_seleccionados as $codigo_producto) {
-                $cantidad = $cantidades[$codigo_producto];
-                $stmt = $pdo->prepare("SELECT nombre_producto, precio_producto FROM tb_productos WHERE codigo_producto = :codigo_producto");
-                $stmt->execute(['codigo_producto' => $codigo_producto]);
-                $producto = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                if ($producto) {
-                    $subtotal = $producto['precio_producto'] * $cantidad;
-                    $productos_comprados[] = [
-                        'nombre' => $producto['nombre_producto'],
-                        'cantidad' => $cantidad,
-                        'subtotal' => $subtotal
-                    ];
-                    $total += $subtotal * (1 + $iva);
-
-                    $stmt = $pdo->prepare("INSERT INTO tb_factura_detalles (id_factura, codigo_producto, cantidad, subtotal) VALUES (:id_factura, :codigo_producto, :cantidad, :subtotal)");
-                    $stmt->execute([
-                        'id_factura' => $id_factura,
-                        'codigo_producto' => $codigo_producto,
-                        'cantidad' => $cantidad,
-                        'subtotal' => $subtotal
-                    ]);
-
-                    $stmt = $pdo->prepare("INSERT INTO tb_compras (numero_idusuario, codigo_producto, cantidad) VALUES (:numero_idusuario, :codigo_producto, :cantidad)");
-                    $stmt->execute([
-                        'numero_idusuario' => $numero_idusuario,
-                        'codigo_producto' => $codigo_producto,
-                        'cantidad' => $cantidad
-                    ]);
-                }
-            }
-
-            $stmt = $pdo->prepare("UPDATE tb_facturas SET total_factura = :total_factura WHERE id_factura = :id_factura");
-            $stmt->execute([
-                'total_factura' => $total,
-                'id_factura' => $id_factura
-            ]);
-
-            // Generar factura en PDF
-            $mpdf = new \Mpdf\Mpdf();
-            $html = '<h1>Factura</h1>';
-            $html .= '<p><strong>Usuario:</strong> ' . htmlspecialchars($nombre_usuario) . '</p>';
-            $html .= '<p><strong>Fecha:</strong> ' . date('Y-m-d H:i:s') . '</p>';
-            $html .= '<table border="1" style="width: 100%; border-collapse: collapse;">';
-            $html .= '<thead><tr><th>Producto</th><th>Cantidad</th><th>Subtotal</th></tr></thead>';
-            $html .= '<tbody>';
-            foreach ($productos_comprados as $producto) {
-                $html .= '<tr>';
-                $html .= '<td>' . htmlspecialchars($producto['nombre']) . '</td>';
-                $html .= '<td>' . htmlspecialchars($producto['cantidad']) . '</td>';
-                $html .= '<td>$' . number_format($producto['subtotal'], 2) . '</td>';
-                $html .= '</tr>';
-            }
-            $html .= '</tbody>';
-            $html .= '<tfoot><tr><td colspan="2"><strong>Total</strong></td><td>$' . number_format($total, 2) . '</td></tr></tfoot>';
-            $html .= '</table>';
-            $mpdf->WriteHTML($html);
-
-            $pdf_file = 'factura_' . $nombre_usuario . '_' . time() . '.pdf';
-            $mpdf->Output($pdf_file, \Mpdf\Output\Destination::FILE);
-
-            $productos_json = json_encode($productos_comprados);
-            header("Location: factura.php?nombre_usuario={$nombre_usuario}&productos={$productos_json}&total={$total}&pdf={$pdf_file}");
-            exit();
-        }
-    } catch (PDOException $e) {
-        die("Error al procesar la compra: " . $e->getMessage());
-    }
+// Validar si los productos fueron enviados correctamente
+if (empty($productos_comprados) || !is_array($productos_comprados)) {
+    die("Error: No se encontraron productos para mostrar en la factura.");
 }
 ?>
 
@@ -123,8 +27,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Compras</title>
+    <title>Factura</title>
     <style>
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #ffe4e1;
@@ -142,47 +58,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-align: center;
             color: #d87093;
         }
-        .product {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .product img {
-            width: 90px;
-            height: 90px;
-            object-fit: cover;
-            border-radius: 4px;
-        }
-        button {
-            display: block;
+        table {
             width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #d87093;
+        }
+        th, td {
             padding: 10px;
-            margin-top: 10px;
-            background-color: #d87093;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            text-align: left;
+        }
+        .thank-you {
+            text-align: center;
+            color: #d87093;
+            font-size: 400%;
+            font-weight: bold;
+            margin-top: 20px;
+            animation: bounce 2s infinite;
+        }
+        .pdf-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .pdf-link a {
+            text-decoration: none;
+            color: #d87093;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Sistema de Compras</h1>
-        <form method="POST">
-            <?php foreach ($productos as $producto): ?>
-                <div class="product">
-                    <img src="<?= htmlspecialchars($producto['url_imagen']) ?>" alt="<?= htmlspecialchars($producto['nombre_producto']) ?>">
-                    <label>
-                        <input type="checkbox" name="productos[]" value="<?= $producto['codigo_producto'] ?>">
-                        <?= htmlspecialchars($producto['nombre_producto']) ?> - $<?= htmlspecialchars($producto['precio_producto']) ?>
-                    </label>
-                    <input type="number" name="cantidades[<?= $producto['codigo_producto'] ?>]" min="1" value="1">
-                </div>
-            <?php endforeach; ?>
-            <button type="submit">Realizar Compra</button>
-        </form>
+        <h1>Factura</h1>
+        <p><strong>Usuario:</strong> <?= htmlspecialchars($nombre_usuario) ?></p>
+        <p><strong>Fecha:</strong> <?= htmlspecialchars($fecha_formateada) ?></p>
+
+        <?php if (!empty($productos_comprados) && is_array($productos_comprados)): ?>
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($productos_comprados as $producto): ?>
+                <tr>
+                    <td><?= htmlspecialchars($producto['nombre']) ?></td>
+                    <td><?= htmlspecialchars($producto['cantidad']) ?></td>
+                    <td>$<?= htmlspecialchars(number_format($producto['subtotal'], 2)) ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2"><strong>Total</strong></td>
+                    <td>$<?= htmlspecialchars(number_format($total, 2)) ?></td>
+                </tr>
+            </tfoot>
+        </table>
+        <?php else: ?>
+            <p>No se encontraron productos en la factura.</p>
+        <?php endif; ?>
+
+        <div class="pdf-link">
+            <?php if (!empty($pdf_file)): ?>
+                <p><a href="<?= htmlspecialchars($pdf_file) ?>" download>Descargar Factura en PDF</a></p>
+            <?php endif; ?>
+        </div>
     </div>
+    <div class="thank-you">¡Gracias por tu compra!</div>
 </body>
 </html>
